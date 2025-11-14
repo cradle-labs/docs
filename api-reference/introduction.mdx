@@ -1,0 +1,61 @@
+---
+title: 'Introduction'
+description: 'How the Cradle TypeScript client structures requests and responses.'
+---
+
+The `cradle-api-client` package is a typed wrapper around the REST API. Each method maps 1:1 to an endpoint and resolves with an `ApiResponse<T>` envelope so you can treat reads and writes consistently.
+
+## Installation
+
+```bash
+npm install cradle-api-client axios
+```
+
+```ts
+import { CradleApiClient } from 'cradle-api-client';
+
+export const cradle = new CradleApiClient({
+  baseUrl: 'https://api.cradle.example.com',
+  apiKey: process.env.CRADLE_API_KEY!,
+  timeout: 30_000,
+});
+```
+
+## Response envelope
+
+```ts
+interface ApiResponse<T> {
+  success: boolean;
+  data: T | null;
+  error: string | null;
+}
+```
+
+- `success` — `true` when the request succeeded.
+- `data` — fully typed payload for successful calls, `null` otherwise.
+- `error` — server or network error message (localized to English).
+
+## Helper utilities
+
+Mutation endpoints return discriminated unions. Use `MutationResponseHelpers` to narrow them safely:
+
+```ts
+if (response.success && response.data) {
+  if (MutationResponseHelpers.isCreateAccount(response.data)) {
+    const id = response.data.Accounts.CreateAccount;
+  }
+}
+```
+
+Helpers exist for Accounts, Assets, Markets, OrderBook, Time Series, and Lending pool mutations.
+
+## Categories
+
+| Page | Description |
+| --- | --- |
+| [Accounts & wallets](/api-reference/accounts) | Onboarding, wallet provisioning, and account status controls. |
+| [Assets & markets](/api-reference/assets) | Asset registry, market discovery, and metadata. |
+| [Orders](/api-reference/orders) | Place, cancel, and query orders. |
+| [Time series](/api-reference/time-series) | Candles, market data ingestion, and analytics. |
+| [Lending](/api-reference/lending) | Pools, transactions, statistics, and borrower health. |
+| [Mutations](/api-reference/mutations) | Generic `/process` action and helper unions. |

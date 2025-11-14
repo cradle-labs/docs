@@ -1,0 +1,76 @@
+---
+title: 'Accounts & wallets'
+description: 'Model onboarding, KYC state, and wallet provisioning flows.'
+---
+
+Cradle separates identity (accounts) from custody (wallets). Accounts map to an end customer or institution, while wallets represent on-ledger addresses that can hold assets or collateral.
+
+## Read models
+
+```ts
+const account = await cradle.production.getAccount(accountId);
+const linked = await cradle.production.getAccountByLinkedId('external-crm-id');
+const wallets = await cradle.production.getAccountWallets(accountId);
+```
+
+Use `getAccountByLinkedId` to join Cradle data with your internal CRM or banking core identifier. Wallet lookups are paginated; store the wallet ID you receive for downstream operations (orders, lending, or airdrops).
+
+## Creating accounts
+
+<Tabs>
+  <Tab title="Create">
+
+```ts
+const result = await cradle.sandbox.createAccount({
+  linked_account_id: 'kitanai-capital',
+  account_type: 'institutional',
+});
+```
+
+  </Tab>
+  <Tab title="Update status">
+
+```ts
+await cradle.sandbox.updateAccountStatus({
+  account_id: 'account-uuid',
+  status: 'verified',
+});
+```
+
+  </Tab>
+</Tabs>
+
+Approved accounts typically move from `unverified` → `verified` after KYC/KYB checks pass. Suspend an account if you detect suspicious behaviour—orders and mutations will fail fast until status returns to `verified`.
+
+## Wallet lifecycle
+
+```ts
+const response = await cradle.sandbox.createWallet({
+  cradle_account_id: accountId,
+  address: '0.0.123456',
+  contract_id: '0x1a2b3c4d',
+});
+
+if (response.success && response.data) {
+  // Use MutationResponseHelpers.isCreateWallet(response.data)
+  // to read the created wallet ID.
+}
+```
+
+Wallets inherit the account status automatically. If you need the wallet details later, call `getWallet(walletId)` or `getWalletByAccountId(accountId)`.
+
+## Error handling
+
+Every method returns `ApiResponse<T>`. Handle failures uniformly:
+
+```ts
+const wallets = await cradle.production.getAccountWallets(accountId);
+
+if (!wallets.success) {
+  logger.error('Wallet lookup failed', { error: wallets.error });
+  throw new Error('Unable to load wallets');
+}
+```
+
+Surface user-friendly messaging in your UI, but log the raw error string for debugging. Continue with [Markets & orders](/guides/markets-trading) once onboarding is in place.
+

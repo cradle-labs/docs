@@ -1,0 +1,41 @@
+---
+title: 'Contract architecture'
+description: 'Milestones, modules, and guarantees that power the Cradle Protocol smart contracts.'
+---
+
+The NSE Innovation Lab scope defines how Cradle Protocol tokenizes African securities on Hedera Hashgraph. Use this page to align on what each contract does, the minimum deliverables per milestone, and the operational guarantees baked into the system.
+
+## Milestone 1 — Core contracts + testnet rollout
+
+<Steps>
+  <Step title="Asset bridging system">
+    Custody-backed mint/burn contracts maintain a 1:1 reserve ratio while supporting three token classes: Bridged Securities, CNTs (Cradle Native Tokens), and Yield Tokens. At least three NSE securities must be bridged on testnet.
+  </Step>
+  <Step title="Lending protocol">
+    Overcollateralized money markets with a kinked rate curve, index-based accrual, and multiple collateral types. Contracts expose `deposit`, `withdraw`, `borrow`, `repay`, and `liquidate`, with two live pools (USDC, HBAR).
+  </Step>
+  <Step title="Trading system">
+    Hybrid orderbook supporting pegged boards (reference-priced trades) and free-float boards (pure discovery). Requires three operational trading pairs with atomic settlement guarantees.
+  </Step>
+  <Step title="CNT issuance framework">
+    Startup token deployment workflow that enforces covenants, disclosure rules, and compliance (KYC gating + transfer restrictions). At least one CNT must exist on testnet.
+  </Step>
+  <Step title="Account abstraction & security">
+    Unified `CradleAccount` interface across primitives plus hierarchical access control, circuit breakers, and reentrancy guards. These controls gate every public mutation.
+  </Step>
+  <Step title="Oracle integration">
+    Price feeds with one-hour staleness protection, batch updates, and downstream hooks for collateral valuation + trade references. Five feeds must be active.
+  </Step>
+  <Step title="HTS integration">
+    All tokens use Hedera Token Service with the full key suite (KYC, FREEZE, WIPE, SUPPLY), configured for 8 decimal places and auto-renew policies.
+  </Step>
+</Steps>
+
+## Reference implementation guidelines
+
+- **Testing** — each module must ship with simulation scripts covering mint/burn, liquidation, and oracle lag scenarios before the testnet deployment milestone is marked complete.
+- **Compliance switches** — KYC enforcement and covenant toggles should sit behind admin keys governed by the Cradle Labs multi-sig.
+- **Observability** — emit structured events for bridging, lending health factors, CNT covenant updates, and oracle batch hashes so off-chain services can reconcile outcomes.
+
+Use this baseline when expanding the API docs or writing internal runbooks for future milestones. Whenever contracts evolve, keep this page in sync so the navigation’s “Contracts” tab remains the single source of truth.
+

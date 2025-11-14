@@ -1,0 +1,56 @@
+---
+title: 'Accounts & wallets'
+description: 'Endpoints for managing accounts, linked IDs, and wallets.'
+---
+
+## Read endpoints
+
+| Method | Description |
+| --- | --- |
+| `getAccount(id)` | Fetch an account by UUID. |
+| `getAccountByLinkedId(linkedId)` | Look up an account via your external system ID. |
+| `getAccountWallets(accountId)` | List wallets that belong to an account. |
+| `getWallet(id)` | Fetch a wallet by UUID. |
+| `getWalletByAccountId(accountId)` | Convenience lookup for a wallet via account ID. |
+
+```ts
+const account = await cradle.production.getAccount(accountId);
+const linked = await cradle.production.getAccountByLinkedId('crm-abc');
+const wallets = await cradle.production.getAccountWallets(accountId);
+```
+
+## Mutations
+
+| Method | Input | Notes |
+| --- | --- | --- |
+| `createAccount(input)` | `{ linked_account_id, account_type }` | Use `account_type` = `retail` or `institutional`. |
+| `updateAccountStatus(input)` | `{ account_id, status }` | Status: `unverified`, `verified`, `suspended`, `closed`. |
+| `createWallet(input)` | `{ cradle_account_id, address, contract_id }` | Address is Hedera-format (e.g., `0.0.xxx`). |
+
+```ts
+const response = await cradle.sandbox.createAccount({
+  linked_account_id: 'external-123',
+  account_type: 'retail',
+});
+
+if (response.success && response.data) {
+  if (MutationResponseHelpers.isCreateAccount(response.data)) {
+    const newId = response.data.Accounts.CreateAccount;
+  }
+}
+```
+
+## Error handling
+
+All methods return `ApiResponse<T>`. Check `success` before using the payload:
+
+```ts
+const wallet = await cradle.production.getWallet(walletId);
+
+if (!wallet.success) {
+  throw new Error(wallet.error ?? 'Unknown wallet error');
+}
+```
+
+Accounts and wallets power everything else in the API—link them to your internal identifiers early so you can reconcile data across systems.
+

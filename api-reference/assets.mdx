@@ -1,0 +1,64 @@
+---
+title: 'Assets & markets'
+description: 'Asset registry endpoints, market discovery, and configuration.'
+---
+
+## Assets
+
+| Method | Description |
+| --- | --- |
+| `getAsset(id)` | Retrieve a single asset by UUID. |
+| `getAssets()` | List every asset you have access to. |
+| `getAssetByToken(token)` | Look up by token (e.g., Hedera `0.0.x`). |
+| `getAssetByManager(manager)` | Find assets by manager address. |
+
+```ts
+const asset = await cradle.production.getAsset('asset-uuid');
+const tokenAsset = await cradle.production.getAssetByToken('0.0.12345');
+```
+
+### Mutations
+
+| Method | Input |
+| --- | --- |
+| `createAsset(input)` | `{ asset_manager, token, asset_type, name, symbol, decimals, icon }` |
+| `createExistingAsset(assetId)` | Accepts an existing asset UUID. |
+
+Asset types include `native`, `stablecoin`, `bridged`, `yield_breaking`, `chain_native`, and `volatile`.
+
+## Markets
+
+| Method | Description |
+| --- | --- |
+| `getMarket(id)` | Fetch a single market. |
+| `getMarkets(filters?)` | List markets with optional filters (`market_type`, `status`, `regulation`). |
+
+```ts
+const markets = await cradle.production.getMarkets({
+  market_type: 'derivative',
+  status: 'active',
+});
+```
+
+### Mutations
+
+| Method | Input |
+| --- | --- |
+| `createMarket(input)` | Provide metadata, assets, type, status, and regulation. |
+| `updateMarketStatus(input)` | `{ market_id, status }` to pause or resume markets. |
+
+Market statuses: `active`, `inactive`, `suspended`. Market types: `spot`, `derivative`, `futures`.
+
+## Faucet (sandbox only)
+
+Use the utility faucet to seed wallets with test assets:
+
+```ts
+await cradle.sandbox.airdrop({
+  account: 'account-uuid',
+  asset: 'asset-uuid',
+});
+```
+
+Avoid calling the faucet in production—go through approved treasuries instead.
+

@@ -1,0 +1,86 @@
+---
+title: 'Local development'
+description: 'Preview docs, wire up environment variables, and iterate safely.'
+---
+
+<Info>
+  Keep your docs and SDK development in the same workspace so you can document flows while you implement them. The commands below assume the repo structure in this starter (`documentation/` for Mintlify, `cradle-client-ts/` for the SDK).
+</Info>
+
+## 1. Prep your environment
+
+```bash
+cp .env.example .env.local
+echo "CRADLE_API_KEY=sk_live_..." >> .env.local
+echo "CRADLE_BASE_URL=https://api.cradle.example.com" >> .env.local
+```
+
+Load the file in your shell (`source .env.local`) or use a runtime-specific secret manager. Never hardcode API keys inside Markdown examples—pass them as environment variables and interpolate them with placeholders.
+
+## 2. Install dependencies
+
+<Steps>
+  <Step title="Docs workspace">
+
+```bash
+cd documentation
+npm install
+```
+
+  </Step>
+  <Step title="SDK workspace">
+
+```bash
+cd cradle-client-ts
+npm install
+npm run build
+```
+
+  </Step>
+</Steps>
+
+When contributing examples back to the docs, import from the published `cradle-api-client` package so code samples match what customers copy.
+
+## 3. Preview and iterate
+
+```bash
+cd documentation
+mint dev
+```
+
+Visit `http://localhost:3000` to verify copy, navigation, and components. Pass a different port if you already have a web server running:
+
+```bash
+mint dev --port 4000
+```
+
+Use `<Snippet />` blocks for reusable code and `<Tabs />` or `<Steps />` to keep walkthroughs scannable.
+
+## 4. Validate links and samples
+
+```bash
+mint broken-links
+npm run lint:mdx       # optional, add to package.json if needed
+```
+
+For SDK samples, run a dry request against the sandbox base URL:
+
+```ts
+await cradle.getMarket('sandbox-market-id');
+```
+
+Use response fixtures for deterministic docs when calling production-only endpoints.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title='CLI cannot find "sharp" on macOS'>
+    Upgrade to Node 18+, reinstall the Mintlify CLI (`npm remove -g mint && npm i -g mint`), then clear `~/.mintlify`.
+  </Accordion>
+  <Accordion title="401 responses locally">
+    Confirm the `Authorization: Bearer` header is being set by the SDK. Missing or staged API keys are the most common cause. Regenerate keys in the dashboard and restart your dev server.
+  </Accordion>
+  <Accordion title="Network timeouts">
+    Increase the `timeout` parameter when instantiating `CradleApiClient`, or test against the sandbox URL if the production environment is geographically distant.
+  </Accordion>
+</AccordionGroup>

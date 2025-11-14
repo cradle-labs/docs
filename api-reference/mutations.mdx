@@ -1,0 +1,72 @@
+---
+title: 'Mutations & helpers'
+description: 'Use the generic mutation runner or the provided convenience methods.'
+---
+
+Most write operations go through the `/process` endpoint. You can call it directly or rely on the helper methods defined on `CradleApiClient`.
+
+## Generic `processMutation`
+
+```ts
+const response = await cradle.production.processMutation({
+  Accounts: {
+    CreateAccount: {
+      linked_account_id: 'external-123',
+      account_type: 'retail',
+    },
+  },
+});
+
+if (response.success && response.data) {
+  // Inspect the returned union to read IDs or confirmation payloads.
+}
+```
+
+See the union types in `cradle-api-client.ts` (`MutationAction`, `MutationResponse`) for the exhaustive schema.
+
+## Convenience methods
+
+| Method | Underlying action |
+| --- | --- |
+| `createAccount` | `Accounts.CreateAccount` |
+| `updateAccountStatus` | `Accounts.UpdateAccountStatus` |
+| `createWallet` | `Accounts.CreateWallet` |
+| `createAsset` | `Assets.CreateAsset` |
+| `createExistingAsset` | `Assets.CreateExistingAsset` |
+| `createMarket` | `Markets.CreateMarket` |
+| `updateMarketStatus` | `Markets.UpdateMarketStatus` |
+| `placeOrder` | `OrderBook.PlaceOrder` |
+| `cancelOrder` | `OrderBook.CancelOrder` |
+| `addTimeSeriesRecord` | `MarketTimeSeries.AddRecord` |
+| `createLendingPool` | `Pool.CreateLendingPool` |
+| `supplyLiquidity` | `Pool.SupplyLiquidity` |
+| `withdrawLiquidity` | `Pool.WithdrawLiquidity` |
+| `borrowAsset` | `Pool.BorrowAsset` |
+| `repayBorrow` | `Pool.RepayBorrow` |
+
+For loan-level adjustments you can call `processMutation` directly with `Loans.CreateRepayment` or `Loans.CreateLiquidation`.
+
+## Type guard helpers
+
+```ts
+if (response.success && response.data) {
+  if (MutationResponseHelpers.isCreateAsset(response.data)) {
+    console.log('Asset ID', response.data.Assets.CreateAsset);
+  }
+}
+```
+
+Available helpers:
+
+- Accounts: `isCreateAccount`, `isUpdateAccountStatus`, `isCreateWallet`
+- Assets: `isCreateAsset`, `isCreateExistingAsset`
+- Markets: `isCreateMarket`, `isUpdateMarketStatus`
+- OrderBook: `isPlaceOrder`, `isCancelOrder`
+- MarketTimeSeries: `isAddRecord`
+- Pool: `isCreateLendingPool`, `isSupplyLiquidity`, `isWithdrawLiquidity`, `isBorrowAsset`, `isRepayBorrow`
+- Loans: `isCreateRepayment`, `isCreateLiquidation`
+
+## Error handling
+
+Mutation failures (validation, insufficient balance, policy violations) still return `200 OK` with `success: false`. Surface `response.error` to operators and log the original payload for postmortems. Retry idempotent actions only after confirming the previous attempt truly failed—mutations are not automatically retried by the SDK.
+

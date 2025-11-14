@@ -1,0 +1,100 @@
+---
+title: 'Markets & orders'
+description: 'Launch markets, stream price data, and submit trades.'
+---
+
+Cradle markets describe tradable pairs (spot, derivatives, futures) and their regulatory attributes. Orders are placed against markets by funded wallets.
+
+## Discover markets
+
+```ts
+const markets = await cradle.production.getMarkets({
+  market_type: 'spot',
+  status: 'active',
+  regulation: 'regulated',
+});
+```
+
+Filter by market type or jurisdiction to power UI dropdowns. Fetch a single market by ID when resolving order history:
+
+```ts
+const market = await cradle.production.getMarket('market-uuid');
+```
+
+## Create or update markets
+
+```ts
+await cradle.sandbox.createMarket({
+  name: 'HBAR/USDC',
+  description: 'Institutional spot venue',
+  icon: 'https://cdn.cradle.dev/markets/hbar-usdc.png',
+  asset_one: 'asset-uuid-hbar',
+  asset_two: 'asset-uuid-usdc',
+  market_type: 'spot',
+  market_status: 'active',
+  market_regulation: 'regulated',
+});
+
+await cradle.sandbox.updateMarketStatus({
+  market_id: 'market-uuid',
+  status: 'suspended',
+});
+```
+
+Markets can be paused instantly for compliance events without deleting the resource.
+
+## Place and cancel orders
+
+```ts
+const order = await cradle.production.placeOrder({
+  wallet: 'wallet-uuid',
+  market_id: 'market-uuid',
+  bid_asset: 'asset-uuid-hbar',
+  ask_asset: 'asset-uuid-usdc',
+  bid_amount: '1000.00',
+  ask_amount: '500.00',
+  price: '2.00',
+  mode: 'fill-or-kill',
+  order_type: 'limit',
+});
+
+if (order.success && order.data) {
+  // Narrow with MutationResponseHelpers.isPlaceOrder(order.data)
+}
+```
+
+Cancel outstanding orders with their UUID:
+
+```ts
+await cradle.production.cancelOrder('order-uuid');
+```
+
+## Query order history
+
+```ts
+const orders = await cradle.production.getOrders({
+  wallet: 'wallet-uuid',
+  market_id: 'market-uuid',
+  status: 'open',
+  from_date: '2024-01-01T00:00:00Z',
+  to_date: '2024-01-31T23:59:59Z',
+});
+```
+
+Persist the filters you pass to power pagination or audit exports.
+
+## Time series data
+
+Combine trade execution data with price candles to drive analytics or alerts.
+
+```ts
+const candles = await cradle.production.getTimeSeriesRecords({
+  market_id: 'market-uuid',
+  interval: '1hr',
+  start_time: '2024-01-01T00:00:00Z',
+  end_time: '2024-01-02T00:00:00Z',
+});
+```
+
+You can also add records manually (for off-chain sources) via `addTimeSeriesRecord`. For automated lending triggers, head over to the [Lending operations guide](/guides/lending).
+

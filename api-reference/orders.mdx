@@ -1,0 +1,65 @@
+---
+title: 'Orders'
+description: 'Submit, cancel, and query orders against Cradle markets.'
+---
+
+## Read endpoints
+
+| Method | Description |
+| --- | --- |
+| `getOrder(id)` | Fetch a single order by UUID. |
+| `getOrders(filters?)` | Filter by wallet, market, status, order type, or date range. |
+
+```ts
+const orders = await cradle.production.getOrders({
+  wallet: 'wallet-uuid',
+  market_id: 'market-uuid',
+  status: 'open',
+  order_type: 'limit',
+  from_date: '2024-01-01T00:00:00Z',
+  to_date: '2024-01-07T23:59:59Z',
+});
+```
+
+## Mutations
+
+| Method | Input |
+| --- | --- |
+| `placeOrder(input)` | Wallet, market, bid/ask asset + amounts, `price`, `mode`, `order_type`. |
+| `cancelOrder(orderId)` | Cancels by UUID. |
+
+Order enums:
+
+- `OrderType`: `limit`, `market`
+- `FillMode`: `fill-or-kill`, `immediate-or-cancel`, `good-till-cancel`
+- `OrderStatus`: `open`, `closed`, `cancelled`
+
+```ts
+const response = await cradle.production.placeOrder({
+  wallet: 'wallet-uuid',
+  market_id: 'market-uuid',
+  bid_asset: 'asset-uuid-a',
+  ask_asset: 'asset-uuid-b',
+  bid_amount: '1500.00',
+  ask_amount: '750.00',
+  price: '2.00',
+  mode: 'immediate-or-cancel',
+  order_type: 'limit',
+});
+
+if (response.success && response.data) {
+  if (MutationResponseHelpers.isPlaceOrder(response.data)) {
+    const result = response.data.OrderBook.PlaceOrder;
+    console.log(result.status, result.bid_amount_filled);
+  }
+}
+```
+
+Cancel orders when exposure changes or compliance rules require it:
+
+```ts
+await cradle.production.cancelOrder('order-uuid');
+```
+
+Handle failures by surfacing `response.error` back to your trading UI with actionable messages (e.g., “wallet balance too low”).
+

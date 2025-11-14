@@ -1,0 +1,114 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Cradle Developer Hub",
+  "colors": {
+    "primary": "#FF3332",
+    "light": "#FF8A89",
+    "dark": "#CC1918"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Overview",
+        "groups": [
+          {
+            "group": "Welcome",
+            "pages": [
+              "index",
+              "quickstart",
+              "development"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Contracts",
+        "groups": [
+          {
+            "group": "Protocol design",
+            "pages": [
+              "contracts/overview"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Build with Cradle",
+        "groups": [
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/authentication",
+              "guides/accounts-wallets",
+              "guides/markets-trading",
+              "guides/lending"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api-reference/introduction"
+            ]
+          },
+          {
+            "group": "Resources",
+            "pages": [
+              "api-reference/accounts",
+              "api-reference/assets",
+              "api-reference/orders",
+              "api-reference/time-series",
+              "api-reference/lending",
+              "api-reference/mutations"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": []
+    }
+  },
+  "logo": {
+    "light": "/logo/cradle_logo.svg",
+    "dark": "/logo/cradle_logo.svg"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Homepage",
+        "href": "https://www.cradleprotocol.com/"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Trade",
+      "href": "https://www.cradleprotocol.com/trade"
+    }
+  },
+  "contextual": {
+    "options": [
+     "copy",
+     "view",
+     "chatgpt",
+     "claude",
+     "perplexity",
+     "mcp",
+     "cursor",
+     "vscode"
+   ]
+  },
+  "footer": {
+    "socials": {
+      "x": "https://x.com/CradleProtocol",
+      "github": "https://github.com/cradle-labs",
+      "linkedin": "https://www.linkedin.com/in/cradle-protocol-01a022399/"
+    }
+  }
+}

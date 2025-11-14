@@ -1,0 +1,98 @@
+---
+title: "Quickstart"
+description: "Install the Cradle TypeScript SDK and make your first call."
+---
+
+<Info>
+  **You’ll need**
+  - Node.js 18+
+  - A Cradle API key with access to the resources you plan to call
+  - Either npm, pnpm, or yarn to install packages
+</Info>
+
+## 1. Install and configure
+
+<Snippet src="snippets/install-client.mdx" />
+
+Store your API key securely and expose it to your runtime:
+
+```bash
+export CRADLE_API_KEY="sk_live_..."
+```
+
+If you are deploying server-side, prefer your platform’s encrypted secrets store.
+
+## 2. Instantiate the client
+
+```ts
+import { CradleApiClient } from 'cradle-api-client';
+
+export const cradle = new CradleApiClient({
+  baseUrl: process.env.CRADLE_BASE_URL ?? 'https://api.cradle.example.com',
+  apiKey: process.env.CRADLE_API_KEY!,
+  timeout: 30_000,
+});
+```
+
+<Tip>
+  The client ships with Axios under the hood. You get retries, cancellation, and
+  consistent JSON parsing without any extra configuration.
+</Tip>
+
+## 3. Make your first requests
+
+<AccordionGroup>
+  <Accordion title="Check API health" icon="heart-pulse">
+
+```ts
+const status = await cradle.health();
+console.log(status.status); // ok
+```
+
+  </Accordion>
+  <Accordion title="Fetch an account" icon="user-circle">
+
+```ts
+const account = await cradle.getAccount('550e8400-e29b-41d4-a716-446655440000');
+
+if (account.success) {
+  console.log(account.data?.status);
+} else {
+  throw new Error(account.error);
+}
+```
+
+  </Accordion>
+  <Accordion title="Provision a wallet" icon="wallet">
+
+```ts
+const response = await cradle.createWallet({
+  cradle_account_id: 'account-uuid',
+  address: '0.0.123456',
+  contract_id: '0x1a2b3c',
+});
+
+if (response.success) {
+  // Narrow the union with helpers, or inspect response.data directly.
+}
+```
+
+  </Accordion>
+</AccordionGroup>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication guide" icon="key" href="/guides/authentication">
+    Rotate keys, manage environments, and understand request signing.
+  </Card>
+  <Card title="Accounts & wallets" icon="users" href="/guides/accounts-wallets">
+    Model onboarding flows, KYC status checks, and wallet linking.
+  </Card>
+  <Card title="Markets & orders" icon="chart-bar" href="/guides/markets-trading">
+    Build exchanges, OTC desks, and surveillance for limit orders.
+  </Card>
+  <Card title="Dive into the API" icon="book-open" href="/api-reference/introduction">
+    Browse every method exposed on the TypeScript client.
+  </Card>
+</CardGroup>

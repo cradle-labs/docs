@@ -1,0 +1,82 @@
+---
+title: 'Lending'
+description: 'Pools, loans, repayments, liquidations, and statistics.'
+---
+
+## Pool endpoints
+
+| Method | Description |
+| --- | --- |
+| `getLendingPools()` | List every pool. |
+| `getLendingPool(id)` | Fetch a pool by UUID. |
+| `getLendingPoolByName(name)` | Lookup by human-readable name. |
+| `getLendingPoolByAddress(address)` | Lookup by contract address. |
+| `getPoolSnapshot(poolId)` | Latest utilization, supply, borrow data. |
+| `getPoolInterestRates(poolId)` | Interest rate model plus slopes. |
+| `getPoolCollateralInfo(poolId)` | Collateral configuration and risk params. |
+| `getPoolStatistics(poolId)` | Aggregated metrics + metadata. |
+| `getUserPositions(poolId, walletId)` | Borrow positions and repayment history for a wallet. |
+
+```ts
+const pool = await cradle.production.getLendingPool(poolId);
+const stats = await cradle.production.getPoolStatistics(poolId);
+```
+
+## Transactions & loans
+
+| Method | Description |
+| --- | --- |
+| `getLendingTransactions(poolId)` | All transactions for a pool. |
+| `getLendingTransactionsByWallet(walletId)` | Liquidity events per wallet. |
+| `getLoans(poolId)` | Loans tied to a pool. |
+| `getLoansByWallet(walletId)` | Loans tied to a wallet. |
+| `getLoan(id)` | Single loan. |
+| `getAllLoans()` | Every loan the API can return. |
+| `getLoansByPool(poolId)` | Alias of `getLoans`. |
+| `getLoansByStatus(status)` | Filter by `active`, `repaid`, or `liquidated`. |
+| `getAllRepayments()` | All repayments. |
+| `getRepaymentsByLoan(loanId)` | Repayments for one loan. |
+| `getAllLiquidations()` | All liquidations. |
+| `getLiquidationsByLoan(loanId)` | Liquidations for one loan. |
+
+## Mutations
+
+| Method | Input |
+| --- | --- |
+| `createLendingPool(input)` | Configure collateral, rate curves, and metadata. |
+| `supplyLiquidity(input)` | `{ wallet, pool, amount }` |
+| `withdrawLiquidity(input)` | `{ wallet, pool, amount }` |
+| `borrowAsset(input)` | `{ wallet, pool, amount, collateral }` |
+| `repayBorrow(input)` | `{ wallet, loan, amount }` |
+
+```ts
+const supply = await cradle.production.supplyLiquidity({
+  wallet: 'wallet-uuid',
+  pool: 'pool-uuid',
+  amount: 25_000,
+});
+
+const borrow = await cradle.production.borrowAsset({
+  wallet: 'wallet-uuid',
+  pool: 'pool-uuid',
+  amount: 5_000,
+  collateral: 'asset-uuid',
+});
+```
+
+Narrow responses with the corresponding helper:
+
+```ts
+if (supply.success && supply.data) {
+  if (MutationResponseHelpers.isSupplyLiquidity(supply.data)) {
+    const txId = supply.data.Pool.SupplyLiquidity;
+  }
+}
+```
+
+## Alerts & monitoring
+
+- Poll `getPoolSnapshot` to detect utilization spikes.
+- Compare `getLoansByStatus('liquidated')` against historical medians to flag stress periods.
+- Combine `getUserPositions` with your treasury rules to determine when to request top-ups.
+

@@ -1,0 +1,73 @@
+---
+title: 'Authentication'
+description: 'Connect securely to the Cradle API across every environment.'
+---
+
+Cradle relies on bearer tokens that you generate from the Console. Every call—except for `health()`—requires the `Authorization: Bearer <token>` header that the SDK sets for you.
+
+## Provision API keys
+
+<Steps>
+  <Step title="Request access">
+    Create a project in the Cradle Console and request API access for sandbox and production.
+  </Step>
+  <Step title="Label your keys">
+    Issue one key per environment and per use case (e.g., “webhook-signer-prod”) so revocation is targeted.
+  </Step>
+  <Step title="Store securely">
+    Use your platform’s secret manager (AWS Secrets Manager, Doppler, Vercel env vars, etc.). Never commit keys to git.
+  </Step>
+</Steps>
+
+## Instantiate separate clients
+
+```ts
+import { CradleApiClient } from 'cradle-api-client';
+
+const configs = {
+  sandbox: {
+    baseUrl: 'https://sandbox-api.cradle.example.com',
+    apiKey: process.env.CRADLE_API_KEY_SANDBOX!,
+  },
+  production: {
+    baseUrl: 'https://api.cradle.example.com',
+    apiKey: process.env.CRADLE_API_KEY_PROD!,
+  },
+} as const;
+
+export const cradle = {
+  sandbox: new CradleApiClient({ ...configs.sandbox, timeout: 20_000 }),
+  production: new CradleApiClient({ ...configs.production, timeout: 30_000 }),
+};
+```
+
+Switch clients explicitly instead of overriding environment variables at runtime. This makes it harder to leak production requests from test suites.
+
+## Configuration reference
+
+| Option | Description | Default |
+| --- | --- | --- |
+| `baseUrl` | REST host to target. Point to sandbox during development. | `http://localhost:3000` |
+| `apiKey` | Required bearer token added to every request. | _none_ |
+| `timeout` | Network timeout (ms). Useful for long-running lending ops. | `30000` |
+
+## Rotating credentials
+
+1. Create a new key in the Console and store it.
+2. Deploy the new key to your runtime and restart your services.
+3. Once traffic is confirmed, revoke the previous key via the Console or `updateAccountStatus()` if it was linked to an operational user.
+
+> Stagger rotations across services so you never drop the ability to mutate pools or place orders.
+
+## Testing without auth
+
+The `health()` route is unauthenticated and can be used as part of synthetic monitoring. All other routes return `401` if a token is missing or expired. If you stub network calls in tests, mirror the `ApiResponse<T>` envelope so your application-level checks behave the same in production.
+
+## Observability checklist
+
+- Log the `requestId` header you get back from the API.
+- Track response times per method so you can adjust `timeout` proactively.
+- Alert on spikes in `401`/`403` responses—they often signal expired credentials or scope issues.
+
+Continue with the [Accounts & wallets guide](/guides/accounts-wallets) once your clients are wired up.
+

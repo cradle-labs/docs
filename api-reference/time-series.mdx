@@ -1,0 +1,49 @@
+---
+title: 'Time series'
+description: 'Historical prices, volumes, and manual data ingestion.'
+---
+
+## Read endpoints
+
+| Method | Description |
+| --- | --- |
+| `getTimeSeriesRecord(id)` | Retrieve a single record. |
+| `getTimeSeriesRecords(filters?)` | Fetch records filtered by `market_id`, `asset`, `interval`, `start_time`, `end_time`, or `data_provider`. |
+
+```ts
+const candles = await cradle.production.getTimeSeriesRecords({
+  market_id: 'market-uuid',
+  asset: 'asset-uuid',
+  interval: '1hr',
+  start_time: '2024-01-01T00:00:00Z',
+  end_time: '2024-01-02T00:00:00Z',
+});
+```
+
+Intervals: `1min`, `5min`, `15min`, `30min`, `1hr`, `4hr`, `1day`, `1week`.
+
+## Mutations
+
+| Method | Input |
+| --- | --- |
+| `addTimeSeriesRecord(input)` | Provide OHLCV data, interval, time bounds, provider metadata. |
+
+```ts
+await cradle.production.addTimeSeriesRecord({
+  market_id: 'market-uuid',
+  asset: 'asset-uuid',
+  open: '2.00',
+  high: '2.50',
+  low: '1.95',
+  close: '2.25',
+  volume: '10000.00',
+  start_time: '2024-01-01T12:00:00Z',
+  end_time: '2024-01-01T13:00:00Z',
+  interval: '1hr',
+  data_provider_type: 'order_book',
+  data_provider: 'cradle-market',
+});
+```
+
+Use `data_provider_type` (`order_book`, `exchange`, `aggregated`) to distinguish sources for compliance or analytics teams.
+

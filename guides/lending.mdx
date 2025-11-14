@@ -1,0 +1,96 @@
+---
+title: 'Lending operations'
+description: 'Monitor pools, manage liquidity, and automate credit workflows.'
+---
+
+Cradle lending pools expose the building blocks of an institutional credit program: pool configuration, liquidity flows, borrower health, and liquidation events.
+
+## Inspect pools
+
+```ts
+const pools = await cradle.production.getLendingPools();
+const usdcPool = await cradle.production.getLendingPool('pool-uuid');
+const snapshot = await cradle.production.getPoolSnapshot('pool-uuid');
+```
+
+Snapshots aggregate utilization, APYs, and liquidity. Fetch statistics, collateral details, and user positions when powering risk dashboards:
+
+```ts
+const rates = await cradle.production.getPoolInterestRates('pool-uuid');
+const collateral = await cradle.production.getPoolCollateralInfo('pool-uuid');
+const stats = await cradle.production.getPoolStatistics('pool-uuid');
+const positions = await cradle.production.getUserPositions('pool-uuid', 'wallet-uuid');
+```
+
+## Track transactions
+
+```ts
+const poolTx = await cradle.production.getLendingTransactions('pool-uuid');
+const walletTx = await cradle.production.getLendingTransactionsByWallet('wallet-uuid');
+
+const loans = await cradle.production.getLoansByPool('pool-uuid');
+const repayments = await cradle.production.getRepaymentsByLoan('loan-uuid');
+const liquidations = await cradle.production.getLiquidationsByLoan('loan-uuid');
+```
+
+Pair these calls with `getLoansByStatus` to power compliance or accounting exports.
+
+## Manage liquidity
+
+```ts
+await cradle.sandbox.createLendingPool({
+  pool_address: '0.0.987654',
+  pool_contract_id: '0x1a2b3c4d5e6f',
+  reserve_asset: 'asset-uuid',
+  loan_to_value: '0.75',
+  base_rate: '0.02',
+  slope1: '0.05',
+  slope2: '0.20',
+  liquidation_threshold: '0.85',
+  liquidation_discount: '0.10',
+  reserve_factor: '0.10',
+  name: 'USDC Lending Pool',
+  title: 'Stable Coin Lending',
+  description: 'A lending pool for USDC',
+});
+
+await cradle.sandbox.supplyLiquidity({
+  wallet: 'wallet-uuid',
+  pool: 'pool-uuid',
+  amount: 10_000,
+});
+
+await cradle.sandbox.withdrawLiquidity({
+  wallet: 'wallet-uuid',
+  pool: 'pool-uuid',
+  amount: 2_500,
+});
+```
+
+Use the sandbox environment to simulate interest accrual before moving to production.
+
+## Borrow and repay
+
+```ts
+const borrow = await cradle.production.borrowAsset({
+  wallet: 'wallet-uuid',
+  pool: 'pool-uuid',
+  amount: 5_000,
+  collateral: 'asset-uuid',
+});
+
+await cradle.production.repayBorrow({
+  wallet: 'wallet-uuid',
+  loan: 'loan-uuid',
+  amount: 5_250,
+});
+```
+
+Narrow mutation responses with `MutationResponseHelpers.isBorrowAsset` and `MutationResponseHelpers.isRepayBorrow` so you only access fields that exist on the returned union.
+
+## Alerting tips
+
+- Schedule `getPoolSnapshot` and `getPoolStatistics` calls to watch for high utilization.
+- Trigger repayment reminders when a loan has no activity but `LoanStatus` remains `active`.
+- Monitor `getAllLiquidations()` for spikes to understand systemic stress.
+
