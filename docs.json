@@ -82,8 +82,8 @@
   "navbar": {
     "links": [
       {
-        "label": "Homepage",
-        "href": "https://www.cradleprotocol.com/"
+        "label": "Github",
+        "href": "https://github.com/cradle-labs"
       }
     ],
     "primary": {
